@@ -7,7 +7,9 @@ exports.index = (req, res, next) => {
   const returnData = [];
 
   // req.socket.remoteAddress
-  traceroute.trace('www.google.com', function (err, hops) {
+  traceroute.trace(req.socket.remoteAddress, function (err, hops) {
+    console.log(hops);
+
     if (!err) {
       // console.log('start');
       hops.forEach((hop) => {
@@ -15,12 +17,13 @@ exports.index = (req, res, next) => {
           // console.log(`${key} : ${value}`);
 
           const geo = geoip.lookup(key);
-          // console.log(geo);
-          const dataObj = generateObjectFromGeoData(geo, value);
-          console.log(typeof dataObj);
-          if (dataObj != null) {
-            console.log('push');
-            returnData.push(dataObj);
+          if (geo != null) {
+            const dataObj = generateObjectFromGeoData(geo, value);
+            console.log(typeof dataObj);
+            if (dataObj != null) {
+              console.log('push');
+              returnData.push(dataObj);
+            }
           }
         }
 
@@ -44,8 +47,6 @@ exports.index = (req, res, next) => {
 };
 
 const generateObjectFromGeoData = (geoData, time) => {
-  console.log(geoData);
-  console.log(typeof geoData.country);
   if (geoData.country.length > 0) {
     const newObj = {
       country: geoData.country,

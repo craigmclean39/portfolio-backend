@@ -9,7 +9,7 @@ const mapRouter = require('./routes/map');
 var app = express();
 
 const tempLogger = (res, req, next) => {
-  console.log('request made');
+  console.log(`req: ${req}`);
   next();
 };
 
