@@ -7,7 +7,12 @@ const CountrySchema = new Schema({
   iso_a2: String,
   geometry: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Polygon',
+    refPath: 'onModel',
+  },
+  onModel: {
+    type: String,
+    required: true,
+    enum: ['Polygon', 'MultiPolygon'],
   },
 });
 
