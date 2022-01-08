@@ -12,39 +12,50 @@ exports.index = (req, res, next) => {
   const returnData = [];
 
   // req.socket.remoteAddress
-  traceroute.trace(req.socket.remoteAddress, function (err, hops) {
-    console.log(hops);
+  traceroute.trace('google.com', function (err, hops) {
+    // console.log(hops);
 
     if (!err) {
-      // console.log('start');
+      //Array of functions to call with async.parallel
+      const functions = [];
+
       hops.forEach((hop) => {
         for (const [key, value] of Object.entries(hop)) {
-          // console.log(`${key} : ${value}`);
-
           const geo = geoip.lookup(key);
           if (geo != null) {
-            const dataObj = generateObjectFromGeoData(geo, value);
-            console.log(typeof dataObj);
-            if (dataObj != null) {
-              console.log('push');
-              returnData.push(dataObj);
-            }
+            const countryQuery = (callback) => {
+              Country.find({ iso_a2: geo.country })
+                .populate('geometry')
+                .exec((err, results) => {
+                  if (err) {
+                    console.log(err);
+                    callback(err);
+                  } else {
+                    returnData.push(results);
+                    callback(null, results);
+                  }
+                });
+            };
+
+            //push the query into the functions array
+            functions.push(countryQuery);
           }
         }
-
-        //console.log(hop)
       });
-      // console.log('end');
 
-      console.log('length = ' + returnData.length);
-      if (returnData.length > 0) {
-        console.log(returnData);
-        res.json(returnData);
-      } else {
-        let error = new Error('Error retrieving geo data');
-        error.status = 404;
-        return next(error);
-      }
+      async.parallel(functions, function (err, result) {
+        if (err) {
+          console.log(err);
+        }
+
+        if (returnData.length > 0) {
+          res.json(returnData);
+        } else {
+          let error = new Error('No Results Found');
+          error.status = 404;
+          return next(error);
+        }
+      });
     } else {
       return next(err);
     }
@@ -70,12 +81,15 @@ const generateObjectFromGeoData = (geoData, time) => {
 exports.populateDb = (req, res, next) => {
   dataJson.features.forEach((f) => {
     let geo = null;
+    let model = '';
     if (f.geometry.type === 'Polygon') {
+      model = f.geometry.type;
       geo = new Polygon({
         type: 'Polygon',
         coordinates: f.geometry.coordinates,
       });
     } else if (f.geometry.type === 'MultiPolygon') {
+      model = f.geometry.type;
       geo = new MultiPolygon({
         type: 'MultiPolygon',
         coordinates: f.geometry.coordinates,
@@ -104,6 +118,7 @@ exports.populateDb = (req, res, next) => {
               name: f.properties.sovereignt,
               iso_a2: f.properties.iso_a2,
               geometry: arg1._id,
+              onModel: model,
             });
 
             country.save((err) => {
