@@ -6,6 +6,8 @@ const Polygon = require('../models/polygon');
 const MultiPolygon = require('../models/multipolygon');
 const async = require('async');
 
+// This functions traces the route between the server and the user
+// and sends back geojson data for the countries the packet hopped through
 exports.index = (req, res, next) => {
   console.log('/map');
 
@@ -62,22 +64,10 @@ exports.index = (req, res, next) => {
   });
 };
 
-const generateObjectFromGeoData = (geoData, time) => {
-  if (geoData.country.length > 0) {
-    const newObj = {
-      country: geoData.country,
-      city: geoData.city,
-      ll: geoData.ll,
-      time: time,
-    };
-
-    console.log('return obj');
-    return newObj;
-  }
-  console.log('return null');
-  return null;
-};
-
+// This Populates the DB with Polygons, MultiPolygons, and Countries, loaded from
+// a geoJson file
+// This is an endpoint because it made it easy for me to test this function and run it easily from
+// Postman, The route will be disabled in production build
 exports.populateDb = (req, res, next) => {
   dataJson.features.forEach((f) => {
     let geo = null;
