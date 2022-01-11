@@ -4,7 +4,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 require('dotenv').config();
-console.log(process.env);
+// console.log(process.env);
 
 const mapRouter = require('./routes/map');
 
@@ -23,14 +23,14 @@ const tempLogger = (res, req, next) => {
   next();
 };
 
-app.use(tempLogger);
+// app.use(tempLogger);
 app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/map', mapRouter);
+app.use('/api', mapRouter);
 
 module.exports = app;

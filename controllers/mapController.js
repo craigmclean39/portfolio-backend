@@ -6,62 +6,8 @@ const Polygon = require('../models/polygon');
 const MultiPolygon = require('../models/multipolygon');
 const async = require('async');
 
-// This functions traces the route between the server and the user
-// and sends back geojson data for the countries the packet hopped through
 exports.index = (req, res, next) => {
-  console.log('/map');
-
-  const returnData = [];
-
-  // req.socket.remoteAddress
-  traceroute.trace('google.com', function (err, hops) {
-    // console.log(hops);
-
-    if (!err) {
-      //Array of functions to call with async.parallel
-      const functions = [];
-
-      hops.forEach((hop) => {
-        for (const [key, value] of Object.entries(hop)) {
-          const geo = geoip.lookup(key);
-          if (geo != null) {
-            const countryQuery = (callback) => {
-              Country.find({ iso_a2: geo.country })
-                .populate('geometry')
-                .exec((err, results) => {
-                  if (err) {
-                    console.log(err);
-                    callback(err);
-                  } else {
-                    returnData.push(results);
-                    callback(null, results);
-                  }
-                });
-            };
-
-            //push the query into the functions array
-            functions.push(countryQuery);
-          }
-        }
-      });
-
-      async.parallel(functions, function (err, result) {
-        if (err) {
-          console.log(err);
-        }
-
-        if (returnData.length > 0) {
-          res.json(returnData);
-        } else {
-          let error = new Error('No Results Found');
-          error.status = 404;
-          return next(error);
-        }
-      });
-    } else {
-      return next(err);
-    }
-  });
+  res.end();
 };
 
 exports.getCountries = (req, res, next) => {
