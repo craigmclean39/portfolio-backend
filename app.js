@@ -4,6 +4,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 require('dotenv').config();
+var fs = require('fs');
 // console.log(process.env);
 
 const mapRouter = require('./routes/map');
@@ -25,6 +26,11 @@ const tempLogger = (res, req, next) => {
 
 // app.use(tempLogger);
 app.use(cors());
+app.use(
+  logger('common', {
+    stream: fs.createWriteStream('./access.log', { flags: 'a' }),
+  })
+);
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
