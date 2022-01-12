@@ -7,6 +7,7 @@ const MultiPolygon = require('../models/multipolygon');
 const async = require('async');
 
 exports.index = (req, res, next) => {
+  res.send('MAP TEST');
   res.end();
 };
 
